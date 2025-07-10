@@ -9,8 +9,6 @@ async_session = async_sessionmaker(
     expire_on_commit=False,
 )
 
-Base = declarative_base() 
-
 async def get_db() -> AsyncSession: # type: ignore
     async with async_session() as session:
         yield session
