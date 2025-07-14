@@ -20,10 +20,8 @@ async def create_user(user_data: UserCreate, db: AsyncSession) -> User:
 
     # Add the user to the DB session
     db.add(user)
-
     # Commit the transaction
     await db.commit()
-
     # Refresh to get generated fields like id, created_at
     await db.refresh(user)
 
