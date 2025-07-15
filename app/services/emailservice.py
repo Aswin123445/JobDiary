@@ -1,13 +1,11 @@
 from fastapi import HTTPException,status
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from app.core.config import config as settings
-from fastapi_mail.email_utils import DefaultChecker
 from jinja2 import Template
 from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncSession
 from jose import jwt,JWTError
-from sqlmodel import select
-from app.models.user import User
+from app.crud.email import get_user_by_email
 
 conf = ConnectionConfig(
     MAIL_USERNAME=settings.MAIL_USERNAME,
@@ -23,7 +21,7 @@ conf = ConnectionConfig(
 
 async def send_verification_email(to_email: str, token: str):
     verify_link = f"http://localhost:8000/email/verify-email?token={token}"
-    template_path = Path(__file__).parent / "templates" / "verify_email.html"
+    template_path = Path(__file__).parent.parent / "utils" / "templates" / "verify_email.html"
 
     html = Template(template_path.read_text()).render(link=verify_link)
 
@@ -47,14 +45,10 @@ async def verify_email_and_set_verified(token: str,db: AsyncSession):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="email not found"
             )
-        #find user by email
-        stmt = select(User).where(User.email == email)
-        result = await db.execute(stmt)
-        user = result.scalar_one_or_none()
+
+        user =  await get_user_by_email(email, db)
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
-        user.is_email_verified = True 
-        await db.commit()
-        return {'user':user,'message':'email hasbeen successfully verified'}
+        return {'user':user,'message':'email has been successfully verified'}
     except JWTError:
         raise HTTPException(status_code=400, detail="❌ Invalid or expired token")
