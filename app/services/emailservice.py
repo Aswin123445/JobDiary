@@ -20,7 +20,7 @@ conf = ConnectionConfig(
 )
 
 async def send_verification_email(to_email: str, token: str):
-    verify_link = f"http://localhost:8000/email/verify-email?token={token}"
+    verify_link = f"http://localhost:8000/v1/verify-email?token={token}"
     template_path = Path(__file__).parent.parent / "utils" / "templates" / "verify_email.html"
 
     html = Template(template_path.read_text()).render(link=verify_link)

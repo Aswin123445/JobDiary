@@ -4,5 +4,5 @@ from app.api.v1 import email
 
 app = FastAPI()
 
-app.include_router(users.router,prefix='/users')
-app.include_router(email.router,prefix='/email')
+app.include_router(users.router,prefix='/v1')
+app.include_router(email.router,prefix='/v1')
