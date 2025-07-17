@@ -4,6 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.user_schema import RegisterResponse, UserCreate, UserLogin,UserRead, UserSignInResponse
 from app.services.user_services import login_user, register_user
 from app.db.session import get_db  
+from fastapi import Request
+from app.core.google_oauth import oauth
 
 router = APIRouter(prefix='/auth')
 
@@ -21,3 +23,9 @@ async def login_user_endpoint(
     db: AsyncSession = Depends(get_db)
 ):
     return await login_user(user, db)
+
+@router.get("/google/login",name="google_auth_callback")
+async def google_login_endpoint(request: Request):
+    redirect_uri = request.url_for('google_auth_callback')
+    print(redirect_uri)
+    return await oauth.google.authorize_redirect(request, redirect_uri)
