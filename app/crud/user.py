@@ -8,15 +8,17 @@ from app.core.security import hash_password,verify_password
 
 async def create_user(user_data: UserCreate, db: AsyncSession) -> User:
     """Create and save a new user to the database."""
+    user_dict = user_data.model_dump(exclude_unset=True)
     # Hash the plain password
-    hashed_pw = hash_password(user_data.password)
+    if user_dict['password']:
+        hashed_pw = hash_password(user_dict['password'])
+        user_dict['hashed_password'] = hashed_pw
+    else :
+        user_dict['is_email_verified'] = True  #
 
     # Create a new User object (DB model)
-    user = User(
-        username=user_data.username,
-        email=user_data.email,
-        hashed_password=hashed_pw
-    )
+    user_dict.pop('password', None)  # Remove plain password
+    user = User(**user_dict)
 
     # Add the user to the DB session
     db.add(user)

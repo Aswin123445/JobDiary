@@ -7,7 +7,7 @@ class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     username: str = Field(index=True, unique=True)
     email: str = Field(index=True, unique=True)
-    hashed_password: str
+    hashed_password:Optional[str] = None # This field is optional for OAuth users
     is_active: bool = True
     is_superuser: bool = False
     is_email_verified: bool = Field(default=False)

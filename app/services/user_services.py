@@ -1,7 +1,7 @@
 
 from fastapi import HTTPException, status,BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.schemas.user_schema import UserCreate, UserLogin
+from app.schemas.user_schema import OAuthUserCreate, UserCreate, UserLogin
 from app.crud.user import check_password, create_user,get_user_by_email
 from app.services.emailservice import send_verification_email
 from app.utils.create_email_verification_token import create_email_verification_token
@@ -12,11 +12,11 @@ async def register_user(
     db: AsyncSession,
     background_tasks: BackgroundTasks
 ):
-    existing_user = await get_user_by_email(user.username, db)
+    existing_user = await get_user_by_email(user.email, db)
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username already taken"
+            detail="email already taken"
         )
 
     new_user = await create_user(user, db)
@@ -42,6 +42,43 @@ async def login_user(
         )
     token_data = existing_user.email
     token = create_access_token(data={"sub":token_data}, expires_delta = timedelta(minutes=30))
+    return {
+        "user": existing_user,
+        "access_token": token,
+        "token_type": "bearer"
+    }
+    
+async def handle_google_auth(user:dict, db: AsyncSession):
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication failed"
+        )
+    
+    user_info = user.get('userinfo')
+    if not user_info:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User info not found"
+        )
+    
+    email = user_info.get('email')
+    name = user_info.get('name')
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email not found in user info"
+        )
+
+    existing_user = await get_user_by_email(email, db)
+    if not existing_user:
+        # Create a new user if they don't exist
+        new_user = OAuthUserCreate(username=name, email=email, password=None)  # Password is None for OAuth users
+        existing_user = await create_user(new_user, db)
+
+    token_data = existing_user.email
+    token = create_access_token(data={"sub": token_data}, expires_delta=timedelta(minutes=30))
+    
     return {
         "user": existing_user,
         "access_token": token,

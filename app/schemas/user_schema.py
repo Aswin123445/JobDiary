@@ -1,10 +1,14 @@
+from typing import Optional
 from pydantic import BaseModel
 from datetime import datetime
 
-class UserCreate(BaseModel):
+class UserBase(BaseModel):
     username: str
     email: str
-    password: str  
+class UserCreate(UserBase):
+    password: str 
+class OAuthUserCreate(UserBase): 
+    password:Optional[str] = None
     
 class UserRead(BaseModel):
     id: int
