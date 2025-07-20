@@ -14,7 +14,7 @@ async def create_user(user_data: UserCreate, db: AsyncSession) -> User:
         hashed_pw = hash_password(user_dict['password'])
         user_dict['hashed_password'] = hashed_pw
     else :
-        user_dict['is_email_verified'] = True  #
+        user_dict['is_email_verified'] = True  
 
     # Create a new User object (DB model)
     user_dict.pop('password', None)  # Remove plain password

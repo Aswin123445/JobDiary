@@ -3,6 +3,7 @@ from fastapi import HTTPException, status,BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.user_schema import OAuthUserCreate, UserCreate, UserLogin
 from app.crud.user import check_password, create_user,get_user_by_email
+from app.services.Exceptions.user_exception import validate_user_login
 from app.services.emailservice import send_verification_email
 from app.utils.create_email_verification_token import create_email_verification_token
 from app.utils.jwt import create_access_token
@@ -29,17 +30,7 @@ async def login_user(
     db: AsyncSession
 ):
     existing_user = await get_user_by_email(user.email, db)
-    print(existing_user)
-    if not existing_user or not check_password(existing_user,user.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password"
-        )
-    if existing_user.is_active is False or existing_user.is_email_verified is False:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User account is inactive. Please verify your email."
-        )
+    validate_user_login(existing_user, user.password)
     token_data = existing_user.email
     token = create_access_token(data={"sub":token_data}, expires_delta = timedelta(minutes=30))
     return {
@@ -73,7 +64,8 @@ async def handle_google_auth(user:dict, db: AsyncSession):
     existing_user = await get_user_by_email(email, db)
     if not existing_user:
         # Create a new user if they don't exist
-        new_user = OAuthUserCreate(username=name, email=email, password=None)  # Password is None for OAuth users
+        new_user = OAuthUserCreate(username=name, email=email, password=None,auth_provider="google")  # Password is None for OAuth users
+        print(new_user)
         existing_user = await create_user(new_user, db)
 
     token_data = existing_user.email

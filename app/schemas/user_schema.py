@@ -5,7 +5,7 @@ from app.utils.validators.user_validators import validate_password_helper, valid
 class UserBase(BaseModel):
     username: Annotated[
         str, 
-        Field(min_length=3, max_length=50, pattern=r'^[a-zA-Z0-9_]+$')
+        Field(min_length=3, max_length=50, pattern=r"^[A-Za-z0-9][A-Za-z0-9 .'\-]{1,48}[A-Za-z0-9]$")
     ]
     email: EmailStr
     @field_validator('username')
@@ -25,6 +25,7 @@ class UserCreate(UserBase):
      
 class OAuthUserCreate(UserBase): 
     password:Optional[str] = None
+    auth_provider: str = "google"  
     
 class UserRead(BaseModel):
     id: int
