@@ -1,9 +1,9 @@
-from sqlmodel import SQLModel, Field , Column
-from typing import Literal, Optional
+from sqlmodel import Relationship, SQLModel, Field , Column
+from typing import Optional
 from datetime import datetime, timezone
 from sqlalchemy import DateTime
 from app.models.enam import AuthProvider
-
+from app.models.profile import Profile
 class User(SQLModel, table=True):
     __tablename__ = "users"
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -15,3 +15,4 @@ class User(SQLModel, table=True):
     auth_provider: AuthProvider = Field(default=AuthProvider.email, nullable=True)
     is_email_verified: bool = Field(default=False)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc),sa_column=Column(DateTime(timezone=True)))
+    profile: Optional[Profile] = Relationship(back_populates="user")

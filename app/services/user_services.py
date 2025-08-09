@@ -1,8 +1,11 @@
 
 from fastapi import HTTPException, status,BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.models.profile import Profile
+from app.models.user import User
+from app.schemas.profile import ProfileUpdate
 from app.schemas.user_schema import OAuthUserCreate, UserCreate, UserLogin
-from app.crud.user import create_user,get_user_by_email
+from app.crud.user import create_user, get_profile_by_user_id,get_user_by_email
 from app.services.Exceptions.user_exception import validate_user_login
 from app.services.emailservice import send_verification_email
 from app.utils.create_email_verification_token import create_email_verification_token
@@ -75,3 +78,24 @@ async def handle_google_auth(user:dict, db: AsyncSession):
         "access_token": token,
         "token_type": "bearer"
     }
+
+async def get_user_profile(user: User, db: AsyncSession):
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    profile = await get_profile_by_user_id(user.id , db)
+    return profile
+
+
+async def update_user_profile(db: AsyncSession, user_id: int, profile_data: ProfileUpdate):
+    user_profile = await get_profile_by_user_id(user_id, db)
+    if not user_profile:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
+
+    # Update only provided fields
+    for field, value in profile_data.model_dump(exclude_unset=True).items():
+        setattr(user_profile, field, value)
+    
+    db.commit()
+    db.refresh(user_profile)
+    return user_profile
