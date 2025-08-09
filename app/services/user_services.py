@@ -2,7 +2,7 @@
 from fastapi import HTTPException, status,BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.user_schema import OAuthUserCreate, UserCreate, UserLogin
-from app.crud.user import check_password, create_user,get_user_by_email
+from app.crud.user import create_user,get_user_by_email
 from app.services.Exceptions.user_exception import validate_user_login
 from app.services.emailservice import send_verification_email
 from app.utils.create_email_verification_token import create_email_verification_token
@@ -65,7 +65,6 @@ async def handle_google_auth(user:dict, db: AsyncSession):
     if not existing_user:
         # Create a new user if they don't exist
         new_user = OAuthUserCreate(username=name, email=email, password=None,auth_provider="google")  # Password is None for OAuth users
-        print(new_user)
         existing_user = await create_user(new_user, db)
 
     token_data = existing_user.email

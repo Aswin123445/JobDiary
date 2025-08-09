@@ -18,7 +18,7 @@ def validate_user_login(existing_user, password):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
         )
-    if not existing_user.is_active:
+    if not existing_user.is_active or not existing_user.is_email_verified:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User account is inactive. Please verify your email."
