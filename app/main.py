@@ -1,3 +1,4 @@
+import os
 from sched import scheduler
 from fastapi import FastAPI
 from fastapi.concurrency import asynccontextmanager
