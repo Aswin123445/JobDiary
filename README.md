@@ -35,5 +35,5 @@ The app features secure email-based authentication using Authlib, and uses the G
 
 1. Clone the repository:  
    ```bash
-   git clone https://github.com/yourusername/job-diary.git
+   git clone https://github.com/Aswin123445/job-diary.git
    cd job-diary
