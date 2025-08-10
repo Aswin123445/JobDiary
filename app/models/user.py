@@ -1,5 +1,5 @@
 from sqlmodel import Relationship, SQLModel, Field , Column
-from typing import Optional
+from typing import List, Optional
 from datetime import datetime, timezone
 from sqlalchemy import DateTime
 from app.models.enam import AuthProvider
@@ -14,5 +14,9 @@ class User(SQLModel, table=True):
     is_superuser: bool = False
     auth_provider: AuthProvider = Field(default=AuthProvider.email, nullable=True)
     is_email_verified: bool = Field(default=False)
+    company_researches: List["UserCompanyResearch"] = Relationship(back_populates="user") # type: ignore
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc),sa_column=Column(DateTime(timezone=True)))
     profile: Optional[Profile] = Relationship(back_populates="user")
+    applications: List["JobApplication"] = Relationship(back_populates="user") # type: ignore
+
+

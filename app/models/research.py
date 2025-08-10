@@ -1,14 +1,14 @@
-import datetime
+from sqlalchemy import Column, DateTime
+from sqlmodel import Relationship, SQLModel, Field 
 from typing import List, Optional
-from pydantic import Field
-from sqlmodel import Relationship, SQLModel
-
+from datetime import datetime
 from app.models.user import User
 
 
 class UserCompanyResearch(SQLModel, table=True):
+    __tablename__ = "usercompanyresearch"
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="user.id")
+    user_id: int = Field(foreign_key="users.id")
     company_name: str
     mission: Optional[str] = None
     vision: Optional[str] = None
@@ -28,6 +28,8 @@ class UserCompanyResearch(SQLModel, table=True):
 
 
 class UserJobResearch(SQLModel, table=True):
+    __tablename__ = "userjobresearch"
+
     id: Optional[int] = Field(default=None, primary_key=True)
     company_research_id: int = Field(foreign_key="usercompanyresearch.id")
     job_title: str
@@ -42,8 +44,10 @@ class UserJobResearch(SQLModel, table=True):
 
 
 class JobApplication(SQLModel, table=True):
+    __tablename__ = "jobapplications"
+
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="user.id")
+    user_id: int = Field(foreign_key="users.id")
     job_research_id: int = Field(foreign_key="userjobresearch.id")
     application_date: datetime = Field(default_factory=datetime.utcnow)
     resume_url: Optional[str] = None
@@ -52,3 +56,6 @@ class JobApplication(SQLModel, table=True):
 
     user: Optional[User] = Relationship(back_populates="applications")
     job_research: Optional[UserJobResearch] = Relationship(back_populates="applications")
+    last_reminder_sent: Optional[datetime] = Field(
+        sa_column=Column(DateTime, nullable=True)
+    )
